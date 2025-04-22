@@ -9,7 +9,7 @@ import requests
 from io import BytesIO
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# === Chargement du modèle depuis GitHub ===
+# === Load model from GitHub ===
 model_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/rf_model.pkl"
 
 @st.cache_resource
@@ -18,9 +18,9 @@ def load_model():
     model = joblib.load(BytesIO(response.content))
     return model
 
-loaded_model = load_model()
+model = load_model()
 
-# === Chargement des données depuis GitHub ===
+# === Load data from GitHub ===
 train_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/train_set.csv"
 test_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/test_set.csv"
 
@@ -32,20 +32,20 @@ def load_data():
 
 train_set, test_set = load_data()
 
-# === Préparation des données ===
-X_train_uncorr = train_set.drop(columns=["Revenue", "Date"])
+# === Prepare data ===
+X_train = train_set.drop(columns=["Revenue", "Date"])
 y_train = train_set["Revenue"]
-X_test_uncorr = test_set.drop(columns=["Revenue", "Date"])
+X_test = test_set.drop(columns=["Revenue", "Date"])
 y_test = test_set["Revenue"]
 
-# === Interface Streamlit ===
-st.title("Random Forest Model Evaluation and SHAP Analysis")
+# === Streamlit UI ===
+st.title("Random Forest Evaluation & SHAP Interpretation")
 
-# === Prédictions ===
-y_pred = loaded_model.predict(X_test_uncorr)
+# === Predictions & Errors ===
+y_pred = model.predict(X_test)
 error = y_test.reset_index(drop=True) - y_pred
 
-# === Affichage des métriques ===
+# === Metrics ===
 r2 = r2_score(y_test, y_pred)
 mae = mean_absolute_error(y_test, y_pred)
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
@@ -55,41 +55,44 @@ col1.metric("R² Score", f"{r2:.4f}")
 col2.metric("MAE", f"{mae:.2f}")
 col3.metric("RMSE", f"{rmse:.2f}")
 
-# === Visualisations par onglets ===
-tab1, tab2, tab3 = st.tabs(["Predictions", "Errors", "SHAP"])
+# === Tabs ===
+tab1, tab2, tab3 = st.tabs(["Predictions", "Errors", "SHAP Analysis"])
 
-# === Onglet 1 : Prédictions vs Réel ===
+# === Tab 1: Predictions vs Actual ===
 with tab1:
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=test_set['Date'], y=y_test, mode='lines+markers', name='Actual'))
     fig.add_trace(go.Scatter(x=test_set['Date'], y=y_pred, mode='lines+markers', name='Predicted', line=dict(dash='dash')))
-    fig.update_layout(title="Predictions vs Actual", xaxis_title="Date", yaxis_title="Revenue")
+    fig.update_layout(title="Predicted vs Actual Revenue", xaxis_title="Date", yaxis_title="Revenue")
     st.plotly_chart(fig)
 
-# === Onglet 2 : Erreurs ===
+# === Tab 2: Errors ===
 with tab2:
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=np.arange(len(error)), y=np.abs(error), mode='lines', name='Absolute Error'))
-    fig1.update_layout(title="Absolute Error", xaxis_title="Index", yaxis_title="Error")
+    fig1.update_layout(title="Absolute Error Over Time", xaxis_title="Index", yaxis_title="Error")
 
     fig2 = go.Figure()
     fig2.add_trace(go.Histogram(x=error, nbinsx=30, name="Error Distribution"))
-    fig2.update_layout(title="Error Distribution", xaxis_title="Error", yaxis_title="Count")
+    fig2.update_layout(title="Error Distribution", xaxis_title="Error", yaxis_title="Frequency")
 
     st.plotly_chart(fig1)
     st.plotly_chart(fig2)
 
-# === Onglet 3 : SHAP Analysis ===
+# === Tab 3: SHAP Analysis ===
 with tab3:
     st.subheader("SHAP Analysis")
-    explainer = shap.TreeExplainer(loaded_model)
-    shap_values = explainer.shap_values(X_test_uncorr)
 
-    # Prevent deprecation warning
+    # Avoid deprecated warning for global use of pyplot
     st.set_option('deprecation.showPyplotGlobalUse', False)
 
-    st.write("### Feature Importance (Bar Plot)")
-    st.pyplot(shap.summary_plot(shap_values, X_test_uncorr, plot_type="bar"))
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_test)
 
-    st.write("### SHAP Summary Plot (Detailed)")
-    st.pyplot(shap.summary_plot(shap_values, X_test_uncorr))
+    st.write("### Feature Importance (Bar Plot)")
+    shap.summary_plot(shap_values, X_test, plot_type="bar")
+    st.pyplot(bbox_inches='tight')
+
+    st.write("### SHAP Summary Plot")
+    shap.summary_plot(shap_values, X_test)
+    st.pyplot(bbox_inches='tight')
