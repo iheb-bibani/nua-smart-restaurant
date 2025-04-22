@@ -16,12 +16,8 @@ def load_model():
 
 loaded_model = load_model()
 
-# URLs GitHub bruts
-BASE_RAW_URL = "https://raw.githubusercontent.com/MTSDEVS/MTS_AIWA_AI/main"
-DATA_URL = f"{BASE_RAW_URL}/Data/Data/Dotky"
-
-train_url = f"{DATA_URL}/train_set.csv"
-test_url = f"{DATA_URL}/test_set.csv"
+train_url = "https://github.com/iheb-bibani/nua-smart-restaurant/blob/main/train_set.csv"
+test_url = "https://github.com/iheb-bibani/nua-smart-restaurant/blob/main/test_set.csv"
 
 # Chargement des données depuis GitHub
 @st.cache_data
