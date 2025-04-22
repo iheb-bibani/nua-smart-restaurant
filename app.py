@@ -85,14 +85,11 @@ with tab3:
     explainer = shap.TreeExplainer(loaded_model)
     shap_values = explainer.shap_values(X_test_uncorr)
 
-    st.write("### Feature Importance")
-    fig_summary, ax_summary = plt.subplots()
-    shap.summary_plot(shap_values, X_test_uncorr, plot_type="bar", show=False)
-    st.pyplot(fig_summary)
-    plt.close(fig_summary)
+    # Prevent deprecation warning
+    st.set_option('deprecation.showPyplotGlobalUse', False)
 
-    st.write("### SHAP Values")
-    fig_shap, ax_shap = plt.subplots()
-    shap.summary_plot(shap_values, X_test_uncorr, show=False)
-    st.pyplot(fig_shap)
-    plt.close(fig_shap)
+    st.write("### Feature Importance (Bar Plot)")
+    st.pyplot(shap.summary_plot(shap_values, X_test_uncorr, plot_type="bar"))
+
+    st.write("### SHAP Summary Plot (Detailed)")
+    st.pyplot(shap.summary_plot(shap_values, X_test_uncorr))
