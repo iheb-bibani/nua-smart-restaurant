@@ -30,8 +30,8 @@ def load_data():
     return train_set, test_set
 
 # Prepare data
-train_set = train_set.set_index(train_set['Date'])
-test_set = test_set.set_index(test_set['Date'])
+train_set = train_url.set_index(train_set['Date'])
+test_set = test_url.set_index(test_set['Date'])
 X_train_uncorr = train_set.drop(columns=["Revenue","Date"])
 y_train = train_set["Revenue"]
 X_test_uncorr = test_set.drop(columns=["Revenue","Date"])
