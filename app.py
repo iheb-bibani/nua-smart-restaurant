@@ -22,11 +22,10 @@ DATA_URL = f"{BASE_RAW_URL}/Data/Data/Dotky"
 train_url = f"{DATA_URL}/train_set.csv"
 test_url = f"{DATA_URL}/test_set.csv"
 
-# Chargement des données depuis GitHub
 @st.cache_data
 def load_data():
-    train_set = pd.read_csv(train_url)
-    test_set = pd.read_csv(test_url)
+    train_set = pd.read_csv(train_url, parse_dates=['Date'])
+    test_set = pd.read_csv(test_url, parse_dates=['Date'])
     return train_set, test_set
 
 # Prepare data
