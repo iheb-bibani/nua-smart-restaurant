@@ -3,45 +3,45 @@ import streamlit as st
 import plotly.graph_objects as go
 import shap
 import joblib
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
 import matplotlib.pyplot as plt
+import requests
+from io import BytesIO
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# Load the trained model
+# === Chargement du modèle depuis GitHub ===
+model_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/rf_model.pkl"
+
 @st.cache_resource
 def load_model():
-    with open('rf_model.pkl', 'rb') as f:
-        return joblib.load(f)
+    response = requests.get(model_url)
+    model = joblib.load(BytesIO(response.content))
+    return model
 
 loaded_model = load_model()
 
-# Correct raw GitHub URLs (IMPORTANT!)
+# === Chargement des données depuis GitHub ===
 train_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/train_set.csv"
 test_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/test_set.csv"
 
-# Load data from GitHub
 @st.cache_data
 def load_data():
-    try:
-        train_df = pd.read_csv(train_url, parse_dates=['Date'])
-        test_df = pd.read_csv(test_url, parse_dates=['Date'])
-        return train_df, test_df
-    except Exception as e:
-        st.error(f"Erreur lors du chargement des données : {e}")
-        st.stop()
+    train_df = pd.read_csv(train_url, parse_dates=['Date'])
+    test_df = pd.read_csv(test_url, parse_dates=['Date'])
+    return train_df, test_df
 
-# === Chargement et préparation des données ===
 train_set, test_set = load_data()
 
+# === Préparation des données ===
 X_train_uncorr = train_set.drop(columns=["Revenue", "Date"])
 y_train = train_set["Revenue"]
 X_test_uncorr = test_set.drop(columns=["Revenue", "Date"])
 y_test = test_set["Revenue"]
 
-# === Interface principale Streamlit ===
+# === Interface Streamlit ===
 st.title("Random Forest Model Evaluation and SHAP Analysis")
 
-# Prédictions
+# === Prédictions ===
 y_pred = loaded_model.predict(X_test_uncorr)
 error = y_test.reset_index(drop=True) - y_pred
 
@@ -55,10 +55,10 @@ col1.metric("R² Score", f"{r2:.4f}")
 col2.metric("MAE", f"{mae:.2f}")
 col3.metric("RMSE", f"{rmse:.2f}")
 
-# === Onglets de visualisation ===
+# === Visualisations par onglets ===
 tab1, tab2, tab3 = st.tabs(["Predictions", "Errors", "SHAP"])
 
-# Onglet 1 : Prédictions vs Réel
+# === Onglet 1 : Prédictions vs Réel ===
 with tab1:
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=test_set['Date'], y=y_test, mode='lines+markers', name='Actual'))
@@ -66,7 +66,7 @@ with tab1:
     fig.update_layout(title="Predictions vs Actual", xaxis_title="Date", yaxis_title="Revenue")
     st.plotly_chart(fig)
 
-# Onglet 2 : Erreurs
+# === Onglet 2 : Erreurs ===
 with tab2:
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=np.arange(len(error)), y=np.abs(error), mode='lines', name='Absolute Error'))
@@ -79,7 +79,7 @@ with tab2:
     st.plotly_chart(fig1)
     st.plotly_chart(fig2)
 
-# Onglet 3 : SHAP Analysis
+# === Onglet 3 : SHAP Analysis ===
 with tab3:
     st.subheader("SHAP Analysis")
     explainer = shap.TreeExplainer(loaded_model)
