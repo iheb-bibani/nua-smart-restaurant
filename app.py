@@ -19,18 +19,16 @@ loaded_model = load_model()
 BASE_RAW_URL = "https://raw.githubusercontent.com/MTSDEVS/MTS_AIWA_AI/main"
 DATA_URL = f"{BASE_RAW_URL}/Data/Data/Dotky"
 
-train_url = f"{DATA_URL}/train_set.csv"
-test_url = f"{DATA_URL}/test_set.csv"
+train_set = f"{DATA_URL}/train_set.csv"
+test_set = f"{DATA_URL}/test_set.csv"
 
 @st.cache_data
 def load_data():
-    train_set = pd.read_csv(train_url, parse_dates=['Date'])
-    test_set = pd.read_csv(test_url, parse_dates=['Date'])
+    train_set = pd.read_csv(train_set, parse_dates=['Date'])
+    test_set = pd.read_csv(test_set, parse_dates=['Date'])
     return train_set, test_set
 
 # Prepare data
-train_set = train_url.set_index(train_set['Date'])
-test_set = test_url.set_index(test_set['Date'])
 X_train_uncorr = train_set.drop(columns=["Revenue","Date"])
 y_train = train_set["Revenue"]
 X_test_uncorr = test_set.drop(columns=["Revenue","Date"])
