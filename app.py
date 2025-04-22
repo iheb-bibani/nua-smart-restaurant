@@ -6,8 +6,9 @@ import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 import requests
-from io import BytesIO
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # === Load model from GitHub ===
 model_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/rf_model.pkl"
