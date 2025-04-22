@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 import requests
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-st.set_option('deprecation.showPyplotGlobalUse', False)
-
 # === Load model from GitHub ===
 model_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/rf_model.pkl"
 
@@ -84,16 +82,17 @@ with tab2:
 with tab3:
     st.subheader("SHAP Analysis")
 
-    # Avoid deprecated warning for global use of pyplot
-    st.set_option('deprecation.showPyplotGlobalUse', False)
-
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_test)
 
     st.write("### Feature Importance (Bar Plot)")
-    shap.summary_plot(shap_values, X_test, plot_type="bar")
-    st.pyplot(bbox_inches='tight')
+    fig_bar, ax_bar = plt.subplots()
+    shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
+    st.pyplot(fig_bar)
+    plt.close(fig_bar)
 
     st.write("### SHAP Summary Plot")
-    shap.summary_plot(shap_values, X_test)
-    st.pyplot(bbox_inches='tight')
+    fig_summary, ax_summary = plt.subplots()
+    shap.summary_plot(shap_values, X_test, show=False)
+    st.pyplot(fig_summary)
+    plt.close(fig_summary)
