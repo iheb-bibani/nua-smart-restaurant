@@ -1,6 +1,5 @@
 import pandas as pd
 import streamlit as st
-import plotly.express as px
 import plotly.graph_objects as go
 import shap
 import joblib
@@ -16,15 +15,20 @@ def load_model():
 
 loaded_model = load_model()
 
-train_url = "https://github.com/iheb-bibani/nua-smart-restaurant/blob/main/train_set.csv"
-test_url = "https://github.com/iheb-bibani/nua-smart-restaurant/blob/main/test_set.csv"
+# Correct raw GitHub URLs (IMPORTANT!)
+train_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/train_set.csv"
+test_url = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaurant/main/test_set.csv"
 
-# Chargement des données depuis GitHub
+# Load data from GitHub
 @st.cache_data
 def load_data():
-    train_df = pd.read_csv(train_url, parse_dates=['Date'])
-    test_df = pd.read_csv(test_url, parse_dates=['Date'])
-    return train_df, test_df
+    try:
+        train_df = pd.read_csv(train_url, parse_dates=['Date'])
+        test_df = pd.read_csv(test_url, parse_dates=['Date'])
+        return train_df, test_df
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des données : {e}")
+        st.stop()
 
 # === Chargement et préparation des données ===
 train_set, test_set = load_data()
