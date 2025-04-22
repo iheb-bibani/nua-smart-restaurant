@@ -16,25 +16,18 @@ def load_model():
 
 loaded_model = load_model()
 
-import os
-from pathlib import Path  # Utilisez Path pour une meilleure gestion des chemins
+BASE_RAW_URL = "https://raw.githubusercontent.com/MTSDEVS/MTS_AIWA_AI/main"
+DATA_URL = f"{BASE_RAW_URL}/Data/Data/Dotky"
 
-# Chemin relatif entre les repositories
-BASE_DIR = "https://github.com/MTSDEVS/MTS_AIWA_AI"  # Remonte d'un niveau
-DATA_DIR = BASE_DIR / "Data" / "Data" / "Dotky"  # Adaptez ce chemin
+train_url = f"{DATA_URL}/train_set.csv"
+test_url = f"{DATA_URL}/test_set.csv"
 
-train_path = DATA_DIR / "train_set.csv"
-test_path = DATA_DIR / "test_set.csv"
-
-# Vérification
-if not train_path.exists():
-    raise FileNotFoundError(f"Fichier {train_path} introuvable. Vérifiez la structure des dossiers.")
-
+# Chargement des données depuis GitHub
 @st.cache_data
 def load_data():
-    train_set = pd.read_csv(train_path)
-    test_set = pd.read_csv(test_path)
-    return train_set,test_set
+    train_set = pd.read_csv(train_url)
+    test_set = pd.read_csv(test_url)
+    return train_set, test_set
 
 # Prepare data
 train_set = train_set.set_index(train_set['Date'])
@@ -47,7 +40,7 @@ y_test = test_set["Revenue"]
 # Main app
 st.title("Random Forest Model Evaluation and SHAP Analysis")
 
-# 2. Model Evaluation
+# Model Evaluation
 y_pred = loaded_model.predict(X_test_uncorr)
 error = y_test.reset_index(drop=True) - y_pred
 
@@ -61,7 +54,7 @@ col1.metric("R² Score", f"{r2:.4f}")
 col2.metric("MAE", f"{mae:.2f}")
 col3.metric("RMSE", f"{rmse:.2f}")
 
-# 3. Visualizations
+# Visualizations
 tab1, tab2, tab3= st.tabs(["Predictions", "Errors", "SHAP"])
 
 with tab1:
