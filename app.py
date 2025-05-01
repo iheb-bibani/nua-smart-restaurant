@@ -105,25 +105,17 @@ test_dates = test_set["Date"].copy()
 
 # --- Preprocessing Pipeline (Mirroring API/Training) ---
 # This block defines X_test_processed_final
-st.sidebar.write("--- Preprocessing Test Data ---") # Put messages in sidebar
 try:
     # 1. Ensure DataFrame has the columns the scaler expects
-    st.sidebar.write(f"Columns expected by scaler: {len(scaler_columns)}")
-    st.sidebar.write(f"Columns in loaded X_test: {X_test_original.shape[1]}")
     X_test_for_scaler = X_test_original[scaler_columns]
-    st.sidebar.write(f"Shape before scaling: {X_test_for_scaler.shape}")
 
     # 2. Apply the SCALER TRANSFORM
     scaled_data = scaler.transform(X_test_for_scaler)
     X_test_scaled = pd.DataFrame(scaled_data, index=X_test_for_scaler.index, columns=scaler_columns)
-    st.sidebar.write(f"Shape after scaling: {X_test_scaled.shape}")
 
     # 3. Select only the final features the model was trained on
-    st.sidebar.write(f"Columns expected by final model: {len(final_model_columns)}")
     # Define the crucial variable here:
     X_test_processed_final = X_test_scaled[final_model_columns]
-    st.sidebar.write(f"Shape after final selection: {X_test_processed_final.shape}")
-    st.sidebar.success("Preprocessing complete.")
 
 except KeyError as e:
     st.error(f"Preprocessing Error: Missing column - {e}. Check if 'scaler_columns.pkl' or 'final_model_columns.pkl' matches the test data columns needed.")
@@ -134,7 +126,6 @@ except Exception as e:
     # st.error(traceback.format_exc()) # Uncomment for debugging
     st.stop()
 # --- End Preprocessing ---
-
 
 # === Streamlit UI ===
 st.title("CatBoost Model Evaluation & SHAP Interpretation")
@@ -148,7 +139,6 @@ try:
 except Exception as e:
     st.error(f"Error during prediction: {e}")
     st.stop()
-
 
 st.write("--- Performance Metrics ---")
 # === Metrics ===
