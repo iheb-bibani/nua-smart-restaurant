@@ -2,15 +2,20 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 import shap
-
+# Use pickle as we saved scaler/lists with it
 import pickle
-
+# Use joblib for the model if it was saved with it, else use pickle
+# import joblib # If model saved with joblib
 from io import BytesIO
 import numpy as np
 import matplotlib.pyplot as plt
 import requests
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+# Explicitly import StandardScaler if type hinting or checks are needed,
+# but not strictly necessary if only using the loaded object.
+# from sklearn.preprocessing import StandardScaler
 
+st.set_option('deprecation.showPyplotGlobalUse', False) # Suppress matplotlib warning if needed
 st.set_page_config(layout="wide") # Use wider layout for plots
 
 # === Configuration: File Paths ===
@@ -22,7 +27,7 @@ TEST_DATA_URL = "https://raw.githubusercontent.com/iheb-bibani/nua-smart-restaur
 
 # === Load Artifacts ===
 
-@st.cache_resource
+@st.cache_resource # Cache resource, doesn't change unless file changes
 def load_model(path):
     try:
         # If model saved with pickle:
@@ -40,7 +45,7 @@ def load_model(path):
         st.error(f"Error loading model: {e}")
         return None
 
-@st.cache_resource
+@st.cache_resource # Cache resource
 def load_scaler(path):
     try:
         with open(path, "rb") as f:
@@ -54,7 +59,7 @@ def load_scaler(path):
         st.error(f"Error loading scaler: {e}")
         return None
 
-@st.cache_data
+@st.cache_data # Cache data, content won't change
 def load_column_list(path):
     try:
         with open(path, "rb") as f:
@@ -68,7 +73,7 @@ def load_column_list(path):
         st.error(f"Error loading column list from {path}: {e}")
         return None
 
-@st.cache_data
+@st.cache_data # Cache test data
 def load_test_data(url):
     try:
         test_df = pd.read_csv(url, parse_dates=['Date'])
@@ -92,11 +97,11 @@ if not all([model, scaler, scaler_columns, final_model_columns, test_set is not 
 
 # === Prepare data from the loaded test set ===
 # Features need preprocessing; Target is used as is for evaluation
-X_test_original = test_set.drop(columns=["Revenue", "Date"]).copy() # Keep original for reference if needed
+X_test_original = test_set.drop(columns=["Revenue", "Date"]).copy()
 y_test = test_set["Revenue"].copy()
 test_dates = test_set["Date"].copy()
 
-# === Preprocessing Pipeline (Mirroring API/Training) ===
+# --- Preprocessing Pipeline (Mirroring API/Training) ---
 st.write("--- Preprocessing Test Data ---")
 try:
     # 1. Ensure DataFrame has the columns the scaler expects
@@ -112,6 +117,7 @@ try:
 
     # 3. Select only the final features the model was trained on
     print("Columns expected by final model:", final_model_columns)
+    # THIS LINE DEFINES THE VARIABLE:
     X_test_processed_final = X_test_scaled[final_model_columns]
     print("Shape after final selection:", X_test_processed_final.shape)
     st.success("Preprocessing complete.")
@@ -122,14 +128,15 @@ except KeyError as e:
 except Exception as e:
     st.error(f"An error occurred during preprocessing: {e}")
     st.stop()
-
+    
 # === Streamlit UI ===
 st.title("CatBoost Model Evaluation & SHAP Interpretation")
 
 # === Predictions & Errors ===
+# NOW THIS LINE WILL WORK BECAUSE X_test_processed_final IS DEFINED ABOVE
 st.write("--- Making Predictions ---")
 y_pred = model.predict(X_test_processed_final)
-error = y_test.reset_index(drop=True) - y_pred 
+error = y_test.reset_index(drop=True) - y_pred
 
 st.write("--- Performance Metrics ---")
 # === Metrics ===
@@ -209,3 +216,5 @@ with tab3:
 
     except Exception as e:
         st.error(f"An error occurred during SHAP analysis: {e}")
+        # import traceback
+        # st.text(traceback.format_exc()) # Uncomment for detailed error traceback
