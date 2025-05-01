@@ -12,7 +12,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 # from sklearn.preprocessing import StandardScaler # Only needed for type hints, not execution
 
 # --- Page Configuration ---
-st.set_option('deprecation.showPyplotGlobalUse', False) # Suppress matplotlib warning
 st.set_page_config(layout="wide") # Use wider layout
 
 # === Configuration: File Paths ===
